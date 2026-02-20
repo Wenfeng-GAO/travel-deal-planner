@@ -66,8 +66,10 @@ export function recommendFromSample({ tripLengthDays } = {}) {
     { price: 900, currency: 'CNY', layovers: 2, depart_time: '2026-04-06T06:10', arrive_time: '2026-04-06T18:40', segments: [] }
   ];
   const hotels = [
-    { total_price: 1400, nightly_price: 350, star_rating: 4, review_score: 4.2 },
-    { total_price: 1800, nightly_price: 450, star_rating: 5, review_score: 4.6 }
+    { total_price: 1400, nightly_price: 350, star_rating: 4, review_score: 4.2, date: '2026-02-01' },
+    { total_price: 1300, nightly_price: 325, star_rating: 4, review_score: 4.1, date: '2026-02-10' },
+    { total_price: 1500, nightly_price: 375, star_rating: 5, review_score: 4.6, date: '2026-02-20' },
+    { total_price: 1200, nightly_price: 300, star_rating: 4, review_score: 4.3, date: '2026-03-01' }
   ];
   const priceSeries = [
     { date: '2026-02-01', price: 1100 },
