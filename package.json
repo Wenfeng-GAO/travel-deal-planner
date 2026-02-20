@@ -1,0 +1,17 @@
+{
+  "name": "travel-deal-planner",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@9.12.2",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "pnpm -C apps/api dev",
+    "start": "pnpm -C apps/api start",
+    "build": "pnpm -C apps/api build",
+    "lint": "echo 'lint:TODO'",
+    "test": "node --test packages/core/test/*.test.mjs packages/data/test/*.test.mjs"
+  }
+}

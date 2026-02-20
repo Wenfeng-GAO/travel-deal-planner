@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Travel Deal Planner</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="bg-grid" aria-hidden="true"></div>
+    <main class="shell">
+      <header class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">Travel Deal Planner</p>
+          <h1>低价与体验的平衡窗口</h1>
+          <p class="subtitle">
+            以航班+酒店合计成本为核心，输出最低价方案与舒适型方案，并给出订购与出行时间建议。
+          </p>
+        </div>
+        <div class="hero-badge">
+          <span class="pill">Shanghai → Pilot Destinations</span>
+          <span class="pill subtle">Daily Snapshots</span>
+        </div>
+      </header>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2>查询参数</h2>
+          <p>默认使用本地 API。若跨端口，请确保 API 已开启 CORS。</p>
+        </div>
+        <div class="form-grid">
+          <label>
+            API Base
+            <input id="apiBase" value="http://localhost:3000" />
+          </label>
+          <label>
+            出发地
+            <input id="origin" value="PVG" />
+          </label>
+          <label>
+            目的地
+            <input id="destination" value="URC" />
+          </label>
+          <label>
+            日期
+            <input id="date" type="date" />
+          </label>
+          <label>
+            行程天数
+            <input id="tripDays" type="number" min="1" max="30" value="5" />
+          </label>
+          <label>
+            数据源
+            <select id="source">
+              <option value="snapshots">snapshots</option>
+              <option value="sample">sample</option>
+              <option value="amadeus">amadeus</option>
+            </select>
+          </label>
+        </div>
+        <div class="form-actions">
+          <button id="run">生成推荐</button>
+          <span id="status" class="status">待命</span>
+        </div>
+      </section>
+
+      <section class="cards">
+        <article class="card">
+          <h3>最低价方案</h3>
+          <div id="lowestPlan" class="metric">暂无</div>
+        </article>
+        <article class="card">
+          <h3>体验性价比方案</h3>
+          <div id="comfortPlan" class="metric">暂无</div>
+        </article>
+        <article class="card">
+          <h3>订购窗口</h3>
+          <div id="bookingWindow" class="metric">暂无</div>
+        </article>
+      </section>
+
+      <section class="cards">
+        <article class="card">
+          <h3>出行窗口</h3>
+          <div id="travelWindow" class="metric">暂无</div>
+        </article>
+        <article class="card">
+          <h3>价格趋势</h3>
+          <div id="priceTrend" class="metric">暂无</div>
+        </article>
+        <article class="card">
+          <h3>合计最低日期</h3>
+          <div id="tripCost" class="metric">暂无</div>
+        </article>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2>价格走势</h2>
+          <p>机票、酒店、合计最低价的日期级数据。</p>
+        </div>
+        <div class="chart">
+          <svg id="sparkline" viewBox="0 0 360 120" preserveAspectRatio="none"></svg>
+          <div id="chartLegend" class="legend"></div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2>舒适型酒店候选</h2>
+          <p>星级≥3 且评分≥4 的最低价候选。</p>
+        </div>
+        <div id="hotelList" class="hotel-list"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2>推荐说明</h2>
+          <p>解释口径基于转机约束、价格分位数和连续出行日成本。</p>
+        </div>
+        <ul id="explanations" class="explain-list"></ul>
+      </section>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
