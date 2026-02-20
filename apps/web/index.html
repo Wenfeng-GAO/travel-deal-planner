@@ -26,20 +26,22 @@
       <section class="panel">
         <div class="panel-head">
           <h2>查询参数</h2>
-          <p>默认使用本地 API。若跨端口，请确保 API 已开启 CORS。</p>
+          <p>请输入出发地、目的地与日期，生成推荐方案。</p>
         </div>
         <div class="form-grid">
           <label>
-            API Base
-            <input id="apiBase" value="http://localhost:3000" />
-          </label>
-          <label>
             出发地
-            <input id="origin" value="PVG" />
+            <select id="origin">
+              <option value="PVG">上海</option>
+            </select>
           </label>
           <label>
             目的地
-            <input id="destination" value="URC" />
+            <select id="destination">
+              <option value="URC">乌鲁木齐</option>
+              <option value="DLU">大理</option>
+              <option value="CNX">清迈</option>
+            </select>
           </label>
           <label>
             日期
@@ -48,14 +50,6 @@
           <label>
             行程天数
             <input id="tripDays" type="number" min="1" max="30" value="5" />
-          </label>
-          <label>
-            数据源
-            <select id="source">
-              <option value="snapshots">snapshots</option>
-              <option value="sample">sample</option>
-              <option value="amadeus">amadeus</option>
-            </select>
           </label>
         </div>
         <div class="form-actions">

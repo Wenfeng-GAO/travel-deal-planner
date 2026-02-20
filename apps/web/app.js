@@ -1,11 +1,9 @@
 const el = (id) => document.getElementById(id);
 
-const apiBaseInput = el('apiBase');
 const originInput = el('origin');
 const destinationInput = el('destination');
 const dateInput = el('date');
 const tripDaysInput = el('tripDays');
-const sourceInput = el('source');
 const statusEl = el('status');
 
 const lowestPlanEl = el('lowestPlan');
@@ -98,13 +96,19 @@ function renderSparkline(series) {
   chartLegendEl.textContent = `最小 ${formatMoney(min)} · 最大 ${formatMoney(max)} · 共 ${series.length} 天`;
 }
 
+function getQueryParams() {
+  return new URLSearchParams(window.location.search);
+}
+
 async function fetchRecommendation() {
-  const apiBase = apiBaseInput.value.trim().replace(/\/$/, '');
+  const qs = getQueryParams();
+  const apiBase = (qs.get('api_base') ?? 'http://localhost:3000').replace(/\/$/, '');
   const origin = originInput.value.trim();
   const destination = destinationInput.value.trim();
   const date = dateInput.value || new Date().toISOString().slice(0, 10);
   const tripDays = tripDaysInput.value.trim();
-  const source = sourceInput.value;
+  const mock = qs.get('mock');
+  const source = mock ? 'sample' : (qs.get('source') ?? 'snapshots');
 
   const params = new URLSearchParams({
     origin,
