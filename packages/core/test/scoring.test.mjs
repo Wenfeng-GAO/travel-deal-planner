@@ -48,6 +48,7 @@ test('buildRecommendation includes booking and travel windows', () => {
   assert.ok(r.travel_window);
   assert.equal(r.travel_window.start_date, '2026-04-02');
   assert.equal(r.travel_window.end_date, '2026-04-04');
+  assert.equal(r.travel_window_basis, 'flight_only');
   assert.ok(r.price_trend);
   assert.ok(r.hotel_price_range);
   assert.ok(r.comfort_hotels.length > 0);

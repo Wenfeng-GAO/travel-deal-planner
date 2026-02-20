@@ -26,7 +26,7 @@
       <section class="panel">
         <div class="panel-head">
           <h2>查询参数</h2>
-          <p>请输入出发地、目的地与日期，生成推荐方案。</p>
+          <p>系统将自动给出未来周期内的最优出行时间。</p>
         </div>
         <div class="form-grid">
           <label>
@@ -44,13 +44,12 @@
             </select>
           </label>
           <label>
-            日期
-            <input id="date" type="date" />
-          </label>
-          <label>
             行程天数
             <input id="tripDays" type="number" min="1" max="30" value="5" />
           </label>
+          <div class="hint">
+            推荐范围：未来 6 个月
+          </div>
         </div>
         <div class="form-actions">
           <button id="run">生成推荐</button>

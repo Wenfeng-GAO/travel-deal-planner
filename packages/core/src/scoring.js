@@ -174,11 +174,13 @@ export function buildRecommendation({ flights, hotels, priceSeries, tripLengthDa
   const comfortWithDelta = attachDelta(lowest, comfort);
   const bookingWindow = computeBookingWindow(priceSeries);
   const tripDays = inferTripLengthDays(tripLengthDays, hotels);
-  const travelWindow = computeTravelWindow(priceSeries, tripDays);
   const priceTrend = computePriceTrend(priceSeries);
   const comfortHotels = filterComfortHotels(hotels);
   const tripCostSummary = summarizeTripCost(priceSeries, comfortHotels);
   const dailyMins = summarizeDailyMins(priceSeries, comfortHotels);
+  const travelSeries = dailyMins.total_daily_min.length ? dailyMins.total_daily_min : priceSeries;
+  const travelWindow = computeTravelWindow(travelSeries, tripDays);
+  const travelWindowBasis = dailyMins.total_daily_min.length ? 'flight_plus_hotel' : 'flight_only';
   const explanations = [];
 
   if (comfortWithDelta?.constraints?.max_layovers === 1) {
@@ -188,7 +190,8 @@ export function buildRecommendation({ flights, hotels, priceSeries, tripLengthDa
     explanations.push(`订购窗口参考历史价格分位数（P10-P50），价格接近该区间时更划算。`);
   }
   if (travelWindow?.start_date && travelWindow?.end_date) {
-    explanations.push(`推荐出行窗口通过连续 ${tripDays} 天游的最低票价求和得到（${travelWindow.start_date} 到 ${travelWindow.end_date}）。`);
+    const basis = travelWindowBasis === 'flight_plus_hotel' ? '机票+酒店' : '机票';
+    explanations.push(`推荐出行窗口通过连续 ${tripDays} 天游的最低${basis}成本求和得到（${travelWindow.start_date} 到 ${travelWindow.end_date}）。`);
   }
   if (priceTrend?.trend) {
     explanations.push(`价格趋势为 ${priceTrend.trend}，波动系数 ${priceTrend.volatility}。`);
@@ -202,6 +205,7 @@ export function buildRecommendation({ flights, hotels, priceSeries, tripLengthDa
     comfort_plan: comfortWithDelta,
     booking_window: explainBookingWindow(bookingWindow),
     travel_window: travelWindow,
+    travel_window_basis: travelWindowBasis,
     trip_length_days: tripDays,
     price_trend: explainPriceTrend(priceTrend),
     hotel_price_range: summarizeHotelRange(comfortHotels),

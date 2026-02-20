@@ -25,8 +25,8 @@ app.get('/recommendations', async (req, res) => {
   const {
     origin = 'PVG',
     destination = 'URC',
-    date = '2026-04-06',
-    source = 'amadeus',
+    date,
+    source = 'snapshots',
     trip_length_days,
     tripLengthDays
   } = req.query;
@@ -34,6 +34,9 @@ app.get('/recommendations', async (req, res) => {
   const tripDays = tripDaysRaw ? Number(tripDaysRaw) : undefined;
 
   try {
+    if (source === 'amadeus' && !date) {
+      return res.status(400).json({ error: 'date is required when source=amadeus' });
+    }
     const rec = source === 'sample'
       ? recommendFromSample({ tripLengthDays: tripDays })
       : source === 'snapshots'

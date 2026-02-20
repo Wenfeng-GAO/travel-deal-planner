@@ -2,7 +2,6 @@ const el = (id) => document.getElementById(id);
 
 const originInput = el('origin');
 const destinationInput = el('destination');
-const dateInput = el('date');
 const tripDaysInput = el('tripDays');
 const statusEl = el('status');
 
@@ -105,7 +104,6 @@ async function fetchRecommendation() {
   const apiBase = (qs.get('api_base') ?? 'http://localhost:3000').replace(/\/$/, '');
   const origin = originInput.value.trim();
   const destination = destinationInput.value.trim();
-  const date = dateInput.value || new Date().toISOString().slice(0, 10);
   const tripDays = tripDaysInput.value.trim();
   const mock = qs.get('mock');
   const source = mock ? 'sample' : (qs.get('source') ?? 'snapshots');
@@ -113,7 +111,6 @@ async function fetchRecommendation() {
   const params = new URLSearchParams({
     origin,
     destination,
-    date,
     source
   });
   if (tripDays) params.set('trip_length_days', tripDays);
@@ -131,7 +128,7 @@ async function fetchRecommendation() {
       : '暂无';
 
     travelWindowEl.textContent = data.travel_window?.start_date
-      ? `${data.travel_window.start_date} → ${data.travel_window.end_date}`
+      ? `${data.travel_window.start_date} → ${data.travel_window.end_date} · ${data.travel_window_basis === 'flight_plus_hotel' ? '机票+酒店' : '机票'}`
       : '暂无';
 
     priceTrendEl.textContent = data.price_trend?.trend
@@ -153,5 +150,4 @@ async function fetchRecommendation() {
 
 document.getElementById('run').addEventListener('click', fetchRecommendation);
 
-dateInput.value = new Date().toISOString().slice(0, 10);
 fetchRecommendation();
