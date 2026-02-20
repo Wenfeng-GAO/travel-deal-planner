@@ -66,7 +66,7 @@ function renderExplanations(explanations) {
   }
 }
 
-function renderSparkline(series) {
+function renderSparkline(series, label) {
   chartEl.innerHTML = '';
   if (!series?.length) {
     chartLegendEl.textContent = '暂无价格序列';
@@ -132,7 +132,8 @@ function renderSparkline(series) {
   trendLine.setAttribute('points', movingAvg.map((p) => `${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(' '));
   chartEl.appendChild(trendLine);
 
-  chartLegendEl.textContent = `最小 ${formatMoney(min)} · 最大 ${formatMoney(max)} · 波动 ±${formatMoney(stddev)} · 共 ${series.length} 天`;
+  const prefix = label ? `${label} · ` : '';
+  chartLegendEl.textContent = `${prefix}最小 ${formatMoney(min)} · 最大 ${formatMoney(max)} · 波动 ±${formatMoney(stddev)} · 共 ${series.length} 天`;
 }
 
 function getQueryParams() {
@@ -181,7 +182,11 @@ async function fetchRecommendation() {
 
     renderHotels(data.comfort_hotels);
     renderExplanations(data.explanations);
-    renderSparkline(data.price_series_summary?.total_daily_min);
+    const totalSeries = data.price_series_summary?.total_daily_min ?? [];
+    const flightSeries = data.price_series_summary?.flight_daily_min ?? [];
+    const series = totalSeries.length ? totalSeries : flightSeries;
+    const label = totalSeries.length ? '机票+酒店' : '机票';
+    renderSparkline(series, label);
     setStatus('完成');
   } catch (err) {
     setStatus(`失败: ${err?.message ?? err}`);
