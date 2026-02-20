@@ -195,6 +195,12 @@ button {
   font-size: 0.85rem;
 }
 
+.chart-note {
+  margin-top: 8px;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
 .hotel-list {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));

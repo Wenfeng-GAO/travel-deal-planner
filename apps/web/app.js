@@ -79,20 +79,60 @@ function renderSparkline(series) {
   const max = Math.max(...values);
   const range = max - min || 1;
 
+  const avg = values.reduce((a, b) => a + b, 0) / values.length;
+  const variance = values.reduce((acc, v) => acc + (v - avg) ** 2, 0) / values.length;
+  const stddev = Math.sqrt(variance);
+
   const points = series.map((d, i) => {
     const x = (i / (series.length - 1 || 1)) * width;
     const y = height - ((d.price - min) / range) * height;
-    return `${x.toFixed(2)},${y.toFixed(2)}`;
+    return { x, y, price: d.price };
   });
 
-  const polyline = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
-  polyline.setAttribute('fill', 'none');
-  polyline.setAttribute('stroke', '#0f766e');
-  polyline.setAttribute('stroke-width', '3');
-  polyline.setAttribute('points', points.join(' '));
+  const movingAvg = points.map((p, idx) => {
+    const start = Math.max(0, idx - 3);
+    const end = Math.min(points.length - 1, idx + 3);
+    const slice = points.slice(start, end + 1);
+    const mean = slice.reduce((a, b) => a + b.price, 0) / slice.length;
+    const y = height - ((mean - min) / range) * height;
+    return { x: p.x, y };
+  });
 
-  chartEl.appendChild(polyline);
-  chartLegendEl.textContent = `最小 ${formatMoney(min)} · 最大 ${formatMoney(max)} · 共 ${series.length} 天`;
+  const bandTop = points.map((p) => {
+    const y = height - ((p.price + stddev - min) / range) * height;
+    return { x: p.x, y };
+  });
+  const bandBottom = points
+    .map((p) => {
+      const y = height - ((p.price - stddev - min) / range) * height;
+      return { x: p.x, y };
+    })
+    .reverse();
+
+  const band = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+  band.setAttribute(
+    'points',
+    [...bandTop, ...bandBottom].map((p) => `${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(' ')
+  );
+  band.setAttribute('fill', 'rgba(15, 118, 110, 0.12)');
+  band.setAttribute('stroke', 'none');
+  chartEl.appendChild(band);
+
+  const rawLine = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+  rawLine.setAttribute('fill', 'none');
+  rawLine.setAttribute('stroke', '#9aa3ae');
+  rawLine.setAttribute('stroke-width', '2');
+  rawLine.setAttribute('points', points.map((p) => `${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(' '));
+  chartEl.appendChild(rawLine);
+
+  const trendLine = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+  trendLine.setAttribute('fill', 'none');
+  trendLine.setAttribute('stroke', '#0f766e');
+  trendLine.setAttribute('stroke-width', '3');
+  trendLine.setAttribute('points', movingAvg.map((p) => `${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(' '));
+  chartEl.appendChild(trendLine);
+
+  chartLegendEl.textContent = `最小 ${formatMoney(min)} · 最大 ${formatMoney(max)} · 波动 ±${formatMoney(stddev)} · 共 ${series.length} 天`;
 }
 
 function getQueryParams() {
