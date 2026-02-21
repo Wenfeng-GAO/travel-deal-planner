@@ -1,6 +1,8 @@
-import { getAmadeusToken, searchFlightOffers, normalizeFlightOffers, hashSnapshot } from '../../data/src/index.js';
+import { loadEnv, getAmadeusToken, searchFlightOffers, normalizeFlightOffers, hashSnapshot } from '../../data/src/index.js';
 import { openDb, insertFlightSnapshot } from '../../data/src/db.js';
 import { ROUTES, FETCH_DAYS, REQUEST_SLEEP_MS } from '../../data/src/config.js';
+
+loadEnv();
 
 function getEnv(name) {
   const v = process.env[name];

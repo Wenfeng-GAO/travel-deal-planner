@@ -32,15 +32,15 @@
           <label>
             出发地
             <select id="origin">
-              <option value="PVG">上海</option>
+              <option value="上海">上海</option>
             </select>
           </label>
           <label>
             目的地
             <select id="destination">
-              <option value="URC">乌鲁木齐</option>
-              <option value="DLU">大理</option>
-              <option value="CNX">清迈</option>
+              <option value="乌鲁木齐">乌鲁木齐</option>
+              <option value="大理">大理</option>
+              <option value="清迈">清迈</option>
             </select>
           </label>
           <label>
@@ -85,6 +85,17 @@
           <h3>合计最低日期</h3>
           <div id="tripCost" class="metric">暂无</div>
         </article>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2>订购详情</h2>
+          <p>展示最低价与体验方案的航班与酒店细节，便于去 OTA 搜索订购。</p>
+        </div>
+        <div class="plan-grid">
+          <div class="plan-detail" id="lowestDetail"></div>
+          <div class="plan-detail" id="comfortDetail"></div>
+        </div>
       </section>
 
       <section class="panel">

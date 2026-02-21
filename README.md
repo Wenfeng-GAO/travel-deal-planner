@@ -7,6 +7,13 @@ A web product that recommends the cheapest travel window and a comfort‑oriente
 - Development: /Users/wenfeng/Documents/code/travel-deal-planner/docs/DEVELOPMENT.md
 
 ## API (local)
+Create a local `.env` (gitignored) or export env vars before running Amadeus calls:
+
+```
+cp .env.example .env
+# fill AMADEUS_CLIENT_ID / AMADEUS_CLIENT_SECRET
+```
+
 ```
 # sample data
 curl "http://localhost:3000/recommendations?source=sample"

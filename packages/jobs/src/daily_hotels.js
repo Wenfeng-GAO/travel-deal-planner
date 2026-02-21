@@ -1,4 +1,5 @@
 import {
+  loadEnv,
   getAmadeusToken,
   listHotelsByCity,
   searchHotelOffers,
@@ -8,6 +9,8 @@ import {
 } from '../../data/src/index.js';
 import { openDbWithHotels, insertHotelOffer } from '../../data/src/hotel_db.js';
 import { HOTEL_CITIES, HOTEL_FETCH_DAYS, HOTEL_MAX_IDS, HOTEL_STAY_DAYS, REQUEST_SLEEP_MS } from '../../data/src/config.js';
+
+loadEnv();
 
 function getEnv(name) {
   const v = process.env[name];

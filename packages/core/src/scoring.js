@@ -4,9 +4,17 @@ import { computeTravelWindow } from './travel_window.js';
 import { computePriceTrend, explainPriceTrend } from './price_trend.js';
 
 export function scoreLowestPlan({ flights, hotels }) {
+  if (!flights.length) return null;
   const comfortHotels = filterComfortHotels(hotels);
-  if (!flights.length || !comfortHotels.length) return null;
   const cheapestFlight = flights.reduce((a, b) => (a.price <= b.price ? a : b));
+  if (!comfortHotels.length) {
+    return {
+      total_price: cheapestFlight.price,
+      flight: cheapestFlight,
+      hotel: null,
+      mode: 'flight_only'
+    };
+  }
   const cheapestHotel = comfortHotels.reduce((a, b) => (a.total_price <= b.total_price ? a : b));
   return {
     total_price: cheapestFlight.price + cheapestHotel.total_price,
@@ -18,8 +26,17 @@ export function scoreLowestPlan({ flights, hotels }) {
 export function scoreComfortPlan({ flights, hotels }) {
   const comfortHotels = filterComfortHotels(hotels);
   const filteredFlights = flights.filter((f) => f.layovers <= 1);
-  if (!filteredFlights.length || !comfortHotels.length) return null;
+  if (!filteredFlights.length) return null;
   const cheapestFlight = filteredFlights.reduce((a, b) => (a.price <= b.price ? a : b));
+  if (!comfortHotels.length) {
+    return {
+      total_price: cheapestFlight.price,
+      flight: cheapestFlight,
+      hotel: null,
+      constraints: { max_layovers: 1 },
+      mode: 'flight_only'
+    };
+  }
   const cheapestHotel = comfortHotels.reduce((a, b) => (a.total_price <= b.total_price ? a : b));
   return {
     total_price: cheapestFlight.price + cheapestHotel.total_price,
@@ -92,7 +109,23 @@ export function topComfortHotels(hotels, limit = 5) {
     total_price: h.total_price,
     nightly_price: h.nightly_price,
     star_rating: h.star_rating,
-    review_score: h.review_score
+    review_score: h.review_score,
+    date: h.date ?? null
+  }));
+}
+
+export function topFlights(flights, limit = 5) {
+  if (!flights?.length) return [];
+  const ranked = [...flights].sort((a, b) => a.price - b.price);
+  return ranked.slice(0, limit).map((f) => ({
+    offer_id: f.offer_id ?? null,
+    price: f.price,
+    currency: f.currency,
+    depart_time: f.depart_time,
+    arrive_time: f.arrive_time,
+    layovers: f.layovers,
+    total_duration: f.total_duration ?? null,
+    segments: f.segments
   }));
 }
 
@@ -168,6 +201,24 @@ export function summarizeTripCost(priceSeries, hotels) {
   };
 }
 
+function summarizeFlightOnlyCost(priceSeries) {
+  if (!priceSeries?.length) return null;
+  const minByDate = minPriceByDate(priceSeries);
+  if (!minByDate.size) return null;
+  const entries = Array.from(minByDate.entries()).map(([date, price]) => ({ date, price }));
+  entries.sort((a, b) => a.price - b.price);
+  const min = entries[0];
+  const median = entries[Math.floor(entries.length / 2)];
+  const max = entries[entries.length - 1];
+  return {
+    best_date: min.date,
+    min_total_price: min.price,
+    median_total_price: median.price,
+    max_total_price: max.price,
+    count: entries.length
+  };
+}
+
 export function buildRecommendation({ flights, hotels, priceSeries, tripLengthDays }) {
   const lowest = scoreLowestPlan({ flights, hotels });
   const comfort = scoreComfortPlan({ flights, hotels });
@@ -176,7 +227,7 @@ export function buildRecommendation({ flights, hotels, priceSeries, tripLengthDa
   const tripDays = inferTripLengthDays(tripLengthDays, hotels);
   const priceTrend = computePriceTrend(priceSeries);
   const comfortHotels = filterComfortHotels(hotels);
-  const tripCostSummary = summarizeTripCost(priceSeries, comfortHotels);
+  const tripCostSummary = summarizeTripCost(priceSeries, comfortHotels) ?? summarizeFlightOnlyCost(priceSeries);
   const dailyMins = summarizeDailyMins(priceSeries, comfortHotels);
   const travelSeries = dailyMins.total_daily_min.length ? dailyMins.total_daily_min : priceSeries;
   const travelWindow = computeTravelWindow(travelSeries, tripDays);
