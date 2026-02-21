@@ -32,6 +32,21 @@ it('amadeus token + flight offers succeed', async () => {
   assert.ok(Array.isArray(raw.data));
 });
 
+it('amadeus rejects invalid IATA codes', async () => {
+  const tokenRes = await getAmadeusToken({ clientId, clientSecret });
+  await assert.rejects(
+    () =>
+      searchFlightOffers({
+        token: tokenRes.access_token,
+        origin: 'SH',
+        destination: 'URC',
+        date: futureDate(35),
+        adults: 1
+      }),
+    /amadeus offers failed: 400|INVALID FORMAT/
+  );
+});
+
 it('amadeus hotels by city returns data array', async () => {
   const tokenRes = await getAmadeusToken({ clientId, clientSecret });
   const raw = await listHotelsByCity({

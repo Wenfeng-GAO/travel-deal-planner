@@ -41,6 +41,18 @@ export AMADEUS_CLIENT_SECRET=...
 node /Users/wenfeng/Documents/code/travel-deal-planner/packages/jobs/src/daily_fetch.js
 ```
 
+## Flights (backfill past + future)
+```
+# default: past 365 days + future 365 days, skip past dates unless --force-past
+node /Users/wenfeng/Documents/code/travel-deal-planner/packages/jobs/src/backfill_flights.js
+
+# force querying past dates (Amadeus may reject past dates)
+node /Users/wenfeng/Documents/code/travel-deal-planner/packages/jobs/src/backfill_flights.js --force-past
+
+# custom range
+node /Users/wenfeng/Documents/code/travel-deal-planner/packages/jobs/src/backfill_flights.js --start 2025-02-21 --end 2027-02-21
+```
+
 ## Hotels (daily fetch)
 ```
 export AMADEUS_CLIENT_ID=...

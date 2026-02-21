@@ -49,3 +49,15 @@ export function listSnapshots(db, { origin, destination }) {
   `);
   return stmt.all({ origin: origin ?? null, destination: destination ?? null });
 }
+
+export function hasSnapshot(db, { origin, destination, date }) {
+  const stmt = db.prepare(`
+    SELECT 1
+    FROM flight_snapshots
+    WHERE origin = @origin
+      AND destination = @destination
+      AND date = @date
+    LIMIT 1
+  `);
+  return Boolean(stmt.get({ origin, destination, date }));
+}
