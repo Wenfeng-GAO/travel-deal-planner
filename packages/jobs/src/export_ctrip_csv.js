@@ -29,7 +29,8 @@ function main() {
   const db = openDb();
   const rows = db
     .prepare(
-      `SELECT date, min_price, currency, source, airline, flight_no, depart_time, arrive_time, stops
+      `SELECT date, min_price, currency, source, airline, flight_no, depart_time, arrive_time, stops, transfer_details,
+              direct_min_price, direct_airline, direct_flight_no, direct_depart_time, direct_arrive_time, direct_stops
        FROM ctrip_price_observations
        WHERE origin=@origin AND destination=@destination
        ORDER BY date ASC`
@@ -37,39 +38,65 @@ function main() {
     .all({ origin, destination });
   db.close();
 
-  const pickBetter = (current, candidate) => {
-    if (!current) return candidate;
-    if (candidate.min_price < current.min_price) return candidate;
-    if (candidate.min_price > current.min_price) return current;
-    const currentHasFlight = Boolean(current.flight_no || current.depart_time || current.arrive_time);
-    const candidateHasFlight = Boolean(candidate.flight_no || candidate.depart_time || candidate.arrive_time);
-    if (candidateHasFlight && !currentHasFlight) return candidate;
-    if (currentHasFlight && !candidateHasFlight) return current;
-    if (candidate.depart_time && current.depart_time) {
-      return candidate.depart_time < current.depart_time ? candidate : current;
-    }
-    if (candidate.depart_time && !current.depart_time) return candidate;
-    if (current.depart_time && !candidate.depart_time) return current;
-    return current;
-  };
-
   const grouped = new Map();
   for (const row of rows) {
-    if (!Number.isFinite(row.min_price)) continue;
-    if (row.min_price < floor) continue;
     const current = grouped.get(row.date);
-    const normalized = {
-      date: row.date,
-      min_price: row.min_price,
-      currency: row.currency ?? 'CNY',
-      airline: row.airline ?? '',
-      flight_no: row.flight_no ?? '',
-      depart_time: row.depart_time ?? '',
-      arrive_time: row.arrive_time ?? '',
-      stops: Number.isFinite(row.stops) ? row.stops : '',
-      source: row.source ?? 'unknown'
-    };
-    grouped.set(row.date, pickBetter(current, normalized));
+    const next = current
+      ? { ...current }
+      : {
+          date: row.date,
+          min_price: null,
+          currency: row.currency ?? 'CNY',
+          airline: '',
+          flight_no: '',
+          depart_time: '',
+          arrive_time: '',
+          stops: '',
+          transfer_details: '',
+          source: row.source ?? 'unknown',
+          direct_min_price: null,
+          direct_airline: '',
+          direct_flight_no: '',
+          direct_depart_time: '',
+          direct_arrive_time: '',
+          direct_stops: ''
+        };
+
+    if (Number.isFinite(row.min_price) && row.min_price >= floor) {
+      const shouldReplace =
+        !Number.isFinite(next.min_price) ||
+        row.min_price < next.min_price ||
+        (row.min_price === next.min_price && row.depart_time && !next.depart_time);
+      if (shouldReplace) {
+        next.min_price = row.min_price;
+        next.airline = row.airline ?? '';
+        next.flight_no = row.flight_no ?? '';
+        next.depart_time = row.depart_time ?? '';
+        next.arrive_time = row.arrive_time ?? '';
+        next.stops = Number.isFinite(row.stops) ? row.stops : '';
+        next.transfer_details = row.transfer_details ?? '';
+        next.source = row.source ?? next.source;
+        next.currency = row.currency ?? next.currency;
+      }
+    }
+
+    if (Number.isFinite(row.direct_min_price) && row.direct_min_price >= floor) {
+      const shouldReplaceDirect =
+        !Number.isFinite(next.direct_min_price) ||
+        row.direct_min_price < next.direct_min_price ||
+        (row.direct_min_price === next.direct_min_price && row.direct_depart_time && !next.direct_depart_time);
+      if (shouldReplaceDirect) {
+        next.direct_min_price = row.direct_min_price;
+        next.direct_airline = row.direct_airline ?? '';
+        next.direct_flight_no = row.direct_flight_no ?? '';
+        next.direct_depart_time = row.direct_depart_time ?? '';
+        next.direct_arrive_time = row.direct_arrive_time ?? '';
+        next.direct_stops = Number.isFinite(row.direct_stops) ? row.direct_stops : '';
+        next.currency = row.currency ?? next.currency;
+      }
+    }
+
+    grouped.set(row.date, next);
   }
 
   const csvValue = (value) => {
@@ -82,7 +109,26 @@ function main() {
   };
 
   const lines = [];
-  lines.push(['date', 'min_price', 'currency', 'airline', 'flight_no', 'depart_time', 'arrive_time', 'stops', 'source'].join(','));
+  lines.push(
+    [
+      'date',
+      'min_price',
+      'currency',
+      'airline',
+      'flight_no',
+      'depart_time',
+      'arrive_time',
+      'stops',
+      'transfer_details',
+      'source',
+      'direct_min_price',
+      'direct_airline',
+      'direct_flight_no',
+      'direct_depart_time',
+      'direct_arrive_time',
+      'direct_stops'
+    ].join(',')
+  );
   for (const row of Array.from(grouped.values()).sort((a, b) => a.date.localeCompare(b.date))) {
     lines.push(
       [
@@ -94,7 +140,14 @@ function main() {
         csvValue(row.depart_time),
         csvValue(row.arrive_time),
         csvValue(row.stops),
-        csvValue(row.source)
+        csvValue(row.transfer_details),
+        csvValue(row.source),
+        csvValue(row.direct_min_price),
+        csvValue(row.direct_airline),
+        csvValue(row.direct_flight_no),
+        csvValue(row.direct_depart_time),
+        csvValue(row.direct_arrive_time),
+        csvValue(row.direct_stops)
       ].join(',')
     );
   }

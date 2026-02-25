@@ -3,129 +3,28 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Travel Deal Planner</title>
+    <title>Flight Price Chart</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
     <div class="bg-grid" aria-hidden="true"></div>
     <main class="shell">
-      <header class="hero">
-        <div class="hero-copy">
-          <p class="eyebrow">Travel Deal Planner</p>
-          <h1>低价与体验的平衡窗口</h1>
-          <p class="subtitle">
-            以航班+酒店合计成本为核心，输出最低价方案与舒适型方案，并给出订购与出行时间建议。
-          </p>
-        </div>
-        <div class="hero-badge">
-          <span class="pill">Shanghai → Pilot Destinations</span>
-          <span class="pill subtle">Daily Snapshots</span>
-        </div>
-      </header>
-
       <section class="panel">
         <div class="panel-head">
-          <h2>查询参数</h2>
-          <p>系统将自动给出未来周期内的最优出行时间。</p>
-        </div>
-        <div class="form-grid">
-          <label>
-            出发地
-            <select id="origin">
-              <option value="上海">上海</option>
-            </select>
-          </label>
-          <label>
-            目的地
-            <select id="destination">
-              <option value="乌鲁木齐">乌鲁木齐</option>
-              <option value="大理">大理</option>
-              <option value="清迈">清迈</option>
-            </select>
-          </label>
-          <label>
-            行程天数
-            <input id="tripDays" type="number" min="1" max="30" value="5" />
-          </label>
-          <div class="hint">
-            推荐范围：未来 6 个月
-          </div>
-        </div>
-        <div class="form-actions">
-          <button id="run">生成推荐</button>
-          <span id="status" class="status">待命</span>
-        </div>
-      </section>
-
-      <section class="cards">
-        <article class="card">
-          <h3>最低价方案</h3>
-          <div id="lowestPlan" class="metric">暂无</div>
-        </article>
-        <article class="card">
-          <h3>体验性价比方案</h3>
-          <div id="comfortPlan" class="metric">暂无</div>
-        </article>
-        <article class="card">
-          <h3>订购窗口</h3>
-          <div id="bookingWindow" class="metric">暂无</div>
-        </article>
-      </section>
-
-      <section class="cards">
-        <article class="card">
-          <h3>出行窗口</h3>
-          <div id="travelWindow" class="metric">暂无</div>
-        </article>
-        <article class="card">
-          <h3>价格趋势</h3>
-          <div id="priceTrend" class="metric">暂无</div>
-        </article>
-        <article class="card">
-          <h3>合计最低日期</h3>
-          <div id="tripCost" class="metric">暂无</div>
-        </article>
-      </section>
-
-      <section class="panel">
-        <div class="panel-head">
-          <h2>订购详情</h2>
-          <p>展示最低价与体验方案的航班与酒店细节，便于去 OTA 搜索订购。</p>
-        </div>
-        <div class="plan-grid">
-          <div class="plan-detail" id="lowestDetail"></div>
-          <div class="plan-detail" id="comfortDetail"></div>
-        </div>
-      </section>
-
-      <section class="panel">
-        <div class="panel-head">
-          <h2>价格趋势与波动</h2>
-          <p>展示合计最低价随时间变化，并标出趋势线与波动区间。</p>
+          <p class="eyebrow">Ctrip Price Curve</p>
+          <h1>机票价格趋势</h1>
+          <p>展示最低价与直飞最低价走势，悬停查看航班与转机细节。</p>
         </div>
         <div class="chart">
-          <svg id="sparkline" viewBox="0 0 360 120" preserveAspectRatio="none"></svg>
+          <div id="priceChart" class="price-chart"></div>
           <div id="chartLegend" class="legend"></div>
+          <div class="chart-note">提示：鼠标悬停可查看转机地点与停留时间。</div>
         </div>
-      </section>
-
-      <section class="panel">
-        <div class="panel-head">
-          <h2>舒适型酒店候选</h2>
-          <p>星级≥3 且评分≥4 的最低价候选。</p>
-        </div>
-        <div id="hotelList" class="hotel-list"></div>
-      </section>
-
-      <section class="panel">
-        <div class="panel-head">
-          <h2>推荐说明</h2>
-          <p>解释口径基于转机约束、价格分位数和连续出行日成本。</p>
-        </div>
-        <ul id="explanations" class="explain-list"></ul>
       </section>
     </main>
 
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+    <script src="./data/ctrip_prices.js"></script>
     <script src="./app.js"></script>
   </body>
 </html>

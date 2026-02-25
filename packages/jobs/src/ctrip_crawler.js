@@ -17,8 +17,18 @@ function loadConfig() {
     headless: true,
     timeout_ms: 25000,
     skip_existing: true,
+    request_delay_ms: 2000,
     min_price_floor: 300,
-    dump_json: false
+    dump_json: false,
+    dump_all_json: false,
+    start_date: null,
+    page_wait_ms: 8000,
+    cookies_path: null,
+    storage_state_path: null,
+    user_agent:
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+    locale: 'zh-CN',
+    timezone_id: 'Asia/Shanghai'
   };
   if (!fs.existsSync(configPath)) {
     return { ...defaultConfig, configPath };
@@ -60,11 +70,196 @@ function findTime(value) {
   return null;
 }
 
+function pickAirport(...values) {
+  for (const value of values) {
+    if (value == null) continue;
+    const text = String(value).trim();
+    if (text) return text;
+  }
+  return null;
+}
+
+function parseDateTime(value) {
+  if (!value) return null;
+  const str = String(value).trim();
+  if (!str || /^\d{2}:\d{2}$/.test(str)) return null;
+  const normalized = str.includes('T') ? str : str.replace(' ', 'T');
+  const date = new Date(normalized);
+  if (Number.isNaN(date.getTime())) return null;
+  return date;
+}
+
+function formatLayover(minutes) {
+  if (!Number.isFinite(minutes)) return '停留时间未知';
+  const total = Math.max(0, Math.round(minutes));
+  const hrs = Math.floor(total / 60);
+  const mins = total % 60;
+  if (hrs > 0 && mins > 0) return `${hrs}小时${mins}分`;
+  if (hrs > 0) return `${hrs}小时`;
+  return `${mins}分`;
+}
+
+function extractLegs(segments) {
+  const legs = [];
+  for (const segment of segments) {
+    const flights = Array.isArray(segment.flightList) ? segment.flightList : [];
+    if (flights.length) {
+      for (const flight of flights) {
+        legs.push({
+          depart_time: findTime(
+            flight.departureDateTime ||
+              flight.departureTime ||
+              flight.depTime ||
+              segment.departureDateTime ||
+              segment.departureTime
+          ),
+          arrive_time: findTime(
+            flight.arrivalDateTime ||
+              flight.arrivalTime ||
+              flight.arrTime ||
+              segment.arrivalDateTime ||
+              segment.arrivalTime
+          ),
+          depart_time_raw:
+            flight.departureDateTime ||
+            flight.departureTime ||
+            flight.depTime ||
+            segment.departureDateTime ||
+            segment.departureTime ||
+            null,
+          arrive_time_raw:
+            flight.arrivalDateTime ||
+            flight.arrivalTime ||
+            flight.arrTime ||
+            segment.arrivalDateTime ||
+            segment.arrivalTime ||
+            null,
+          depart_airport: pickAirport(
+            flight.departureAirportName,
+            flight.departureAirportShortName,
+            flight.departureAirport,
+            flight.departureAirportCode,
+            flight.departureCityName,
+            flight.departureCityCode,
+            segment.departureAirportName,
+            segment.departureAirportShortName,
+            segment.departureAirport,
+            segment.departureAirportCode,
+            segment.departureCityName,
+            segment.departureCityCode
+          ),
+          arrive_airport: pickAirport(
+            flight.arrivalAirportName,
+            flight.arrivalAirportShortName,
+            flight.arrivalAirport,
+            flight.arrivalAirportCode,
+            flight.arrivalCityName,
+            flight.arrivalCityCode,
+            segment.arrivalAirportName,
+            segment.arrivalAirportShortName,
+            segment.arrivalAirport,
+            segment.arrivalAirportCode,
+            segment.arrivalCityName,
+            segment.arrivalCityCode
+          )
+        });
+      }
+      continue;
+    }
+    legs.push({
+      depart_time: findTime(segment.departureDateTime || segment.departureTime || segment.depTime),
+      arrive_time: findTime(segment.arrivalDateTime || segment.arrivalTime || segment.arrTime),
+      depart_time_raw: segment.departureDateTime || segment.departureTime || segment.depTime || null,
+      arrive_time_raw: segment.arrivalDateTime || segment.arrivalTime || segment.arrTime || null,
+      depart_airport: pickAirport(
+        segment.departureAirportName,
+        segment.departureAirportShortName,
+        segment.departureAirport,
+        segment.departureAirportCode,
+        segment.departureCityName,
+        segment.departureCityCode
+      ),
+      arrive_airport: pickAirport(
+        segment.arrivalAirportName,
+        segment.arrivalAirportShortName,
+        segment.arrivalAirport,
+        segment.arrivalAirportCode,
+        segment.arrivalCityName,
+        segment.arrivalCityCode
+      )
+    });
+  }
+  return legs;
+}
+
+function buildTransferDetails(legs) {
+  if (!Array.isArray(legs) || legs.length <= 1) {
+    return { details: null, count: 0 };
+  }
+  const items = [];
+  for (let i = 0; i < legs.length - 1; i += 1) {
+    const stop = legs[i].arrive_airport || '未知';
+    const arrive = parseDateTime(legs[i].arrive_time_raw || legs[i].arrive_time);
+    const depart = parseDateTime(legs[i + 1].depart_time_raw || legs[i + 1].depart_time);
+    let layover = null;
+    if (arrive && depart) {
+      const diff = Math.round((depart - arrive) / 60000);
+      if (Number.isFinite(diff) && diff >= 0) {
+        layover = diff;
+      }
+    }
+    items.push(`${stop} ${formatLayover(layover)}`);
+  }
+  return { details: items.join(' / '), count: items.length };
+}
+
+function normalizeSameSite(value) {
+  if (!value) return 'Lax';
+  const v = String(value).toLowerCase();
+  if (v === 'strict') return 'Strict';
+  if (v === 'none' || v === 'no_restriction') return 'None';
+  return 'Lax';
+}
+
+function normalizeCookie(cookie) {
+  if (!cookie || !cookie.name) return null;
+  const rawExpires = cookie.expires ?? cookie.expirationDate ?? cookie.expiry ?? cookie.expiration;
+  let expires = Number(rawExpires);
+  if (Number.isFinite(expires) && expires > 1e12) {
+    expires = Math.floor(expires / 1000);
+  }
+  if (!Number.isFinite(expires)) {
+    expires = -1;
+  }
+  return {
+    name: String(cookie.name),
+    value: String(cookie.value ?? ''),
+    domain: cookie.domain || cookie.host || '',
+    path: cookie.path || '/',
+    httpOnly: Boolean(cookie.httpOnly),
+    secure: Boolean(cookie.secure),
+    sameSite: normalizeSameSite(cookie.sameSite),
+    expires
+  };
+}
+
+function loadCookies(filePath) {
+  if (!filePath || !fs.existsSync(filePath)) return [];
+  const raw = fs.readFileSync(filePath, 'utf-8');
+  const parsed = JSON.parse(raw);
+  const list = Array.isArray(parsed) ? parsed : Array.isArray(parsed?.cookies) ? parsed.cookies : [];
+  return list
+    .map((cookie) => normalizeCookie(cookie))
+    .filter((cookie) => cookie && cookie.name && cookie.domain);
+}
+
 function pushItineraryCandidates(itinerary, out, url) {
   if (!itinerary) return;
   const segments = Array.isArray(itinerary.flightSegments) ? itinerary.flightSegments : [];
   if (!segments.length) return;
 
+  const legs = extractLegs(segments);
+  const transferInfo = buildTransferDetails(legs);
   const firstSegment = segments[0] ?? {};
   const lastSegment = segments[segments.length - 1] ?? {};
   const firstFlight = Array.isArray(firstSegment.flightList) ? (firstSegment.flightList[0] ?? {}) : {};
@@ -95,12 +290,15 @@ function pushItineraryCandidates(itinerary, out, url) {
     null;
   const flightNo = firstFlight.flightNo || firstFlight.flightNumber || firstFlight.marketingFlightNo || null;
 
-  const stops =
+  let stops =
     (Number.isFinite(firstSegment.transferCount) && Number(firstSegment.transferCount)) ||
     (Number.isFinite(firstSegment.stopCount) && Number(firstSegment.stopCount)) ||
     (Number.isFinite(itinerary.transferCount) && Number(itinerary.transferCount)) ||
     (Number.isFinite(itinerary.stopCount) && Number(itinerary.stopCount)) ||
-    Math.max(segments.length - 1, 0);
+    null;
+  if (!Number.isFinite(stops)) {
+    stops = Math.max(transferInfo.count, segments.length - 1, 0);
+  }
 
   const priceList = Array.isArray(itinerary.priceList) ? itinerary.priceList : [];
   if (priceList.length) {
@@ -119,6 +317,7 @@ function pushItineraryCandidates(itinerary, out, url) {
         depart_time: depart,
         arrive_time: arrive,
         stops,
+        transfer_details: transferInfo.details,
         source_url: url
       });
     }
@@ -140,6 +339,7 @@ function pushItineraryCandidates(itinerary, out, url) {
       depart_time: depart,
       arrive_time: arrive,
       stops,
+      transfer_details: transferInfo.details,
       source_url: url
     });
   }
@@ -181,10 +381,28 @@ async function run() {
   const windowDays = Number(cfg.window_days) || 30;
   const timeoutMs = Number(cfg.timeout_ms) || 25000;
   const skipExisting = cfg.skip_existing !== false;
+  const requestDelayMs = Number(cfg.request_delay_ms) || 0;
   const minPriceFloor = Number(cfg.min_price_floor) || 300;
   const dumpJson = Boolean(cfg.dump_json);
+  const dumpAllJson = Boolean(cfg.dump_all_json);
+  const pageWaitMs = Number(cfg.page_wait_ms) || 0;
+  const userAgent = String(cfg.user_agent || '');
+  const locale = String(cfg.locale || 'zh-CN');
+  const timezoneId = String(cfg.timezone_id || 'Asia/Shanghai');
+  const cookiesPath = cfg.cookies_path
+    ? path.isAbsolute(cfg.cookies_path)
+      ? cfg.cookies_path
+      : path.join(resolveRepoRoot(), cfg.cookies_path)
+    : null;
+  const storageStatePath = cfg.storage_state_path
+    ? path.isAbsolute(cfg.storage_state_path)
+      ? cfg.storage_state_path
+      : path.join(resolveRepoRoot(), cfg.storage_state_path)
+    : null;
 
-  const start = addDays(new Date(), 1);
+  const start = cfg.start_date
+    ? new Date(`${cfg.start_date}T00:00:00Z`)
+    : addDays(new Date(), 1);
   const dates = dateRange(start, windowDays);
 
   const root = resolveRepoRoot();
@@ -194,8 +412,10 @@ async function run() {
   fs.mkdirSync(jsonDir, { recursive: true });
 
   const db = openDb();
-  const browser = await chromium.launch({ headless: Boolean(cfg.headless) });
-  const page = await browser.newPage();
+  const browser = await chromium.launch({
+    headless: Boolean(cfg.headless),
+    args: ['--disable-blink-features=AutomationControlled']
+  });
 
   for (const date of dates) {
     if (skipExisting && hasCtripPrice(db, { origin, destination, date })) {
@@ -206,6 +426,28 @@ async function run() {
     const url = buildUrl(origin, destination, date);
     const candidates = [];
     let jsonDumpIndex = 0;
+    const contextOptions = {
+      userAgent,
+      locale,
+      timezoneId,
+      viewport: { width: 1365, height: 768 }
+    };
+    if (storageStatePath && fs.existsSync(storageStatePath)) {
+      contextOptions.storageState = storageStatePath;
+    }
+    const context = await browser.newContext(contextOptions);
+    if (cookiesPath) {
+      const cookies = loadCookies(cookiesPath);
+      if (cookies.length) {
+        await context.addCookies(cookies);
+      }
+    }
+    await context.addInitScript(() => {
+      Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+      Object.defineProperty(navigator, 'languages', { get: () => ['zh-CN', 'zh', 'en'] });
+      Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3] });
+    });
+    const page = await context.newPage();
 
     const onResponse = async (response) => {
       const ct = response.headers()['content-type'] || '';
@@ -215,7 +457,7 @@ async function run() {
         const parsed = JSON.parse(text);
         extractFlightCandidatesFromJson(parsed, candidates, response.url());
 
-        if (dumpJson && (candidates.length > 0 || /flight|list|search|itinerary/i.test(response.url()))) {
+        if (dumpJson && (dumpAllJson || candidates.length > 0 || /flight|list|search|itinerary/i.test(response.url()))) {
           const file = path.join(jsonDir, `${origin}-${destination}-${date}-${jsonDumpIndex}.json`);
           fs.writeFileSync(file, text);
           jsonDumpIndex += 1;
@@ -229,6 +471,9 @@ async function run() {
 
     try {
       await page.goto(url, { waitUntil: 'networkidle', timeout: timeoutMs });
+      if (pageWaitMs > 0) {
+        await page.waitForTimeout(pageWaitMs);
+      }
       const html = await page.content();
 
       const rawPath = path.join(rawDir, `${origin}-${destination}-${date}.html`);
@@ -244,11 +489,19 @@ async function run() {
         raw_path: rawPath
       });
 
-      const filteredCandidates = candidates.filter((c) => Number.isFinite(c.price));
+      const filteredCandidates = candidates
+        .filter((c) => Number.isFinite(c.price))
+        .map((c) => ({
+          ...c,
+          price: Number(c.price),
+          stops: Number.isFinite(c.stops) ? Number(c.stops) : null
+        }));
       const preferred = filteredCandidates.length ? filteredCandidates : [];
       const minCandidate = preferred.length
         ? preferred.reduce((a, b) => (a.price <= b.price ? a : b))
         : null;
+      const directList = preferred.filter((c) => Number.isFinite(c.stops) && c.stops === 0);
+      const directCandidate = directList.length ? directList.reduce((a, b) => (a.price <= b.price ? a : b)) : null;
 
       const minPrice = minCandidate ? minCandidate.price : null;
 
@@ -296,7 +549,14 @@ async function run() {
         flight_no: minCandidate?.flight_no ?? null,
         depart_time: minCandidate?.depart_time ?? null,
         arrive_time: minCandidate?.arrive_time ?? null,
-        stops: minCandidate?.stops ?? null
+        stops: minCandidate?.stops ?? null,
+        transfer_details: minCandidate?.transfer_details ?? null,
+        direct_min_price: directCandidate?.price ?? null,
+        direct_airline: directCandidate?.airline ?? null,
+        direct_flight_no: directCandidate?.flight_no ?? null,
+        direct_depart_time: directCandidate?.depart_time ?? null,
+        direct_arrive_time: directCandidate?.arrive_time ?? null,
+        direct_stops: directCandidate?.stops ?? null
       });
 
       console.log(JSON.stringify({ origin, destination, date, min_price: minPrice }));
@@ -314,6 +574,12 @@ async function run() {
       console.warn(JSON.stringify({ origin, destination, date, error: String(err?.message ?? err) }));
     } finally {
       page.off('response', onResponse);
+      await page.close();
+      await context.close();
+    }
+
+    if (requestDelayMs > 0) {
+      await new Promise((resolve) => setTimeout(resolve, requestDelayMs));
     }
   }
 

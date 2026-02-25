@@ -35,6 +35,13 @@ export function openDb() {
       depart_time TEXT,
       arrive_time TEXT,
       stops INTEGER,
+      transfer_details TEXT,
+      direct_min_price REAL,
+      direct_airline TEXT,
+      direct_flight_no TEXT,
+      direct_depart_time TEXT,
+      direct_arrive_time TEXT,
+      direct_stops INTEGER,
       captured_at INTEGER NOT NULL
     );
   `);
@@ -52,6 +59,13 @@ export function openDb() {
   ensureColumn('depart_time', 'TEXT');
   ensureColumn('arrive_time', 'TEXT');
   ensureColumn('stops', 'INTEGER');
+  ensureColumn('transfer_details', 'TEXT');
+  ensureColumn('direct_min_price', 'REAL');
+  ensureColumn('direct_airline', 'TEXT');
+  ensureColumn('direct_flight_no', 'TEXT');
+  ensureColumn('direct_depart_time', 'TEXT');
+  ensureColumn('direct_arrive_time', 'TEXT');
+  ensureColumn('direct_stops', 'INTEGER');
 
   db.exec(`
     CREATE TABLE IF NOT EXISTS ctrip_raw_snapshots (
@@ -132,12 +146,36 @@ export function hasCtripPrice(db, { origin, destination, date }) {
   return Boolean(stmt.get({ origin, destination, date }));
 }
 
-export function insertCtripPrice(db, { id, ota, origin, destination, date, min_price, currency, source, airline, flight_no, depart_time, arrive_time, stops }) {
+export function insertCtripPrice(
+  db,
+  {
+    id,
+    ota,
+    origin,
+    destination,
+    date,
+    min_price,
+    currency,
+    source,
+    airline,
+    flight_no,
+    depart_time,
+    arrive_time,
+    stops,
+    transfer_details,
+    direct_min_price,
+    direct_airline,
+    direct_flight_no,
+    direct_depart_time,
+    direct_arrive_time,
+    direct_stops
+  }
+) {
   const stmt = db.prepare(`
     INSERT OR REPLACE INTO ctrip_price_observations
-      (id, ota, origin, destination, date, min_price, currency, source, airline, flight_no, depart_time, arrive_time, stops, captured_at)
+      (id, ota, origin, destination, date, min_price, currency, source, airline, flight_no, depart_time, arrive_time, stops, transfer_details, direct_min_price, direct_airline, direct_flight_no, direct_depart_time, direct_arrive_time, direct_stops, captured_at)
     VALUES
-      (@id, @ota, @origin, @destination, @date, @min_price, @currency, @source, @airline, @flight_no, @depart_time, @arrive_time, @stops, @captured_at)
+      (@id, @ota, @origin, @destination, @date, @min_price, @currency, @source, @airline, @flight_no, @depart_time, @arrive_time, @stops, @transfer_details, @direct_min_price, @direct_airline, @direct_flight_no, @direct_depart_time, @direct_arrive_time, @direct_stops, @captured_at)
   `);
   stmt.run({
     id,
@@ -153,6 +191,13 @@ export function insertCtripPrice(db, { id, ota, origin, destination, date, min_p
     depart_time: depart_time ?? null,
     arrive_time: arrive_time ?? null,
     stops: Number.isFinite(stops) ? stops : null,
+    transfer_details: transfer_details ?? null,
+    direct_min_price: Number.isFinite(direct_min_price) ? direct_min_price : null,
+    direct_airline: direct_airline ?? null,
+    direct_flight_no: direct_flight_no ?? null,
+    direct_depart_time: direct_depart_time ?? null,
+    direct_arrive_time: direct_arrive_time ?? null,
+    direct_stops: Number.isFinite(direct_stops) ? direct_stops : null,
     captured_at: Date.now()
   });
 }
@@ -196,7 +241,8 @@ export function insertCtripError(db, { id, ota, origin, destination, date, error
 
 export function listCtripPrices(db, { origin, destination }) {
   const stmt = db.prepare(`
-    SELECT date, min_price, currency, source, captured_at
+    SELECT date, min_price, currency, source, airline, flight_no, depart_time, arrive_time, stops, transfer_details,
+           direct_min_price, direct_airline, direct_flight_no, direct_depart_time, direct_arrive_time, direct_stops, captured_at
     FROM ctrip_price_observations
     WHERE origin = COALESCE(@origin, origin)
       AND destination = COALESCE(@destination, destination)

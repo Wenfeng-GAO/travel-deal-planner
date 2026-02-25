@@ -5,6 +5,15 @@
   "headless": true,
   "timeout_ms": 25000,
   "skip_existing": true,
+  "request_delay_ms": 2000,
   "min_price_floor": 300,
-  "dump_json": false
+  "dump_json": false,
+  "dump_all_json": false,
+  "start_date": null,
+  "page_wait_ms": 8000,
+  "cookies_path": null,
+  "storage_state_path": null,
+  "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+  "locale": "zh-CN",
+  "timezone_id": "Asia/Shanghai"
 }
