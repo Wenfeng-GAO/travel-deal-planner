@@ -169,3 +169,25 @@ export function insertCtripError(db, { id, ota, origin, destination, date, error
     created_at: Date.now()
   });
 }
+
+export function listCtripPrices(db, { origin, destination }) {
+  const stmt = db.prepare(`
+    SELECT date, min_price, currency, source, captured_at
+    FROM ctrip_price_observations
+    WHERE origin = COALESCE(@origin, origin)
+      AND destination = COALESCE(@destination, destination)
+    ORDER BY date ASC
+  `);
+  return stmt.all({ origin: origin ?? null, destination: destination ?? null });
+}
+
+export function listCtripErrors(db, { origin, destination }) {
+  const stmt = db.prepare(`
+    SELECT date, error_type, error_message, created_at
+    FROM ctrip_crawler_errors
+    WHERE origin = COALESCE(@origin, origin)
+      AND destination = COALESCE(@destination, destination)
+    ORDER BY date ASC
+  `);
+  return stmt.all({ origin: origin ?? null, destination: destination ?? null });
+}

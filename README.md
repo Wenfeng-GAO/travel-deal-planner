@@ -75,6 +75,12 @@ node /Users/wenfeng/Documents/code/travel-deal-planner/packages/jobs/src/ctrip_d
 
 # export CSV only
 node /Users/wenfeng/Documents/code/travel-deal-planner/packages/jobs/src/export_ctrip_csv.js --origin PVG --destination URC
+
+# quality report + suspicious samples
+node /Users/wenfeng/Documents/code/travel-deal-planner/packages/jobs/src/ctrip_quality_report.js --origin PVG --destination URC
+
+# manual spotcheck list
+node /Users/wenfeng/Documents/code/travel-deal-planner/packages/jobs/src/ctrip_spotcheck.js --origin PVG --destination URC --count 3
 ```
 
 ## Tests
