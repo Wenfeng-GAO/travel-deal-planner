@@ -30,9 +30,28 @@ export function openDb() {
       min_price REAL NOT NULL,
       currency TEXT NOT NULL,
       source TEXT NOT NULL,
+      airline TEXT,
+      flight_no TEXT,
+      depart_time TEXT,
+      arrive_time TEXT,
+      stops INTEGER,
       captured_at INTEGER NOT NULL
     );
   `);
+
+  const columns = db.prepare(`PRAGMA table_info(ctrip_price_observations)`).all();
+  const columnNames = new Set(columns.map((c) => c.name));
+  const ensureColumn = (name, type) => {
+    if (!columnNames.has(name)) {
+      db.exec(`ALTER TABLE ctrip_price_observations ADD COLUMN ${name} ${type}`);
+      columnNames.add(name);
+    }
+  };
+  ensureColumn('airline', 'TEXT');
+  ensureColumn('flight_no', 'TEXT');
+  ensureColumn('depart_time', 'TEXT');
+  ensureColumn('arrive_time', 'TEXT');
+  ensureColumn('stops', 'INTEGER');
 
   db.exec(`
     CREATE TABLE IF NOT EXISTS ctrip_raw_snapshots (
@@ -113,12 +132,12 @@ export function hasCtripPrice(db, { origin, destination, date }) {
   return Boolean(stmt.get({ origin, destination, date }));
 }
 
-export function insertCtripPrice(db, { id, ota, origin, destination, date, min_price, currency, source }) {
+export function insertCtripPrice(db, { id, ota, origin, destination, date, min_price, currency, source, airline, flight_no, depart_time, arrive_time, stops }) {
   const stmt = db.prepare(`
     INSERT OR REPLACE INTO ctrip_price_observations
-      (id, ota, origin, destination, date, min_price, currency, source, captured_at)
+      (id, ota, origin, destination, date, min_price, currency, source, airline, flight_no, depart_time, arrive_time, stops, captured_at)
     VALUES
-      (@id, @ota, @origin, @destination, @date, @min_price, @currency, @source, @captured_at)
+      (@id, @ota, @origin, @destination, @date, @min_price, @currency, @source, @airline, @flight_no, @depart_time, @arrive_time, @stops, @captured_at)
   `);
   stmt.run({
     id,
@@ -129,6 +148,11 @@ export function insertCtripPrice(db, { id, ota, origin, destination, date, min_p
     min_price,
     currency,
     source,
+    airline: airline ?? null,
+    flight_no: flight_no ?? null,
+    depart_time: depart_time ?? null,
+    arrive_time: arrive_time ?? null,
+    stops: Number.isFinite(stops) ? stops : null,
     captured_at: Date.now()
   });
 }
