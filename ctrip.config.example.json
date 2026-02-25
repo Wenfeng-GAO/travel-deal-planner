@@ -1,0 +1,9 @@
+{
+  "origin": "PVG",
+  "destination": "URC",
+  "window_days": 30,
+  "headless": true,
+  "timeout_ms": 25000,
+  "skip_existing": true,
+  "min_price_floor": 300
+}

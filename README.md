@@ -65,6 +65,18 @@ node /Users/wenfeng/Documents/code/travel-deal-planner/packages/jobs/src/daily_h
 node /Users/wenfeng/Documents/code/travel-deal-planner/packages/data/src/hotel_seed.js
 ```
 
+## Ctrip crawler (MVP)
+```
+# copy config and set route/window
+cp /Users/wenfeng/Documents/code/travel-deal-planner/ctrip.config.example.json /Users/wenfeng/Documents/code/travel-deal-planner/.ctrip.config.json
+
+# run once (crawl + export CSV)
+node /Users/wenfeng/Documents/code/travel-deal-planner/packages/jobs/src/ctrip_daily.js
+
+# export CSV only
+node /Users/wenfeng/Documents/code/travel-deal-planner/packages/jobs/src/export_ctrip_csv.js --origin PVG --destination URC
+```
+
 ## Tests
 ```
 pnpm install

@@ -20,6 +20,45 @@ export function openDb() {
     );
   `);
 
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS ctrip_price_observations (
+      id TEXT PRIMARY KEY,
+      ota TEXT NOT NULL,
+      origin TEXT NOT NULL,
+      destination TEXT NOT NULL,
+      date TEXT NOT NULL,
+      min_price REAL NOT NULL,
+      currency TEXT NOT NULL,
+      source TEXT NOT NULL,
+      captured_at INTEGER NOT NULL
+    );
+  `);
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS ctrip_raw_snapshots (
+      id TEXT PRIMARY KEY,
+      ota TEXT NOT NULL,
+      origin TEXT NOT NULL,
+      destination TEXT NOT NULL,
+      date TEXT NOT NULL,
+      raw_path TEXT NOT NULL,
+      captured_at INTEGER NOT NULL
+    );
+  `);
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS ctrip_crawler_errors (
+      id TEXT PRIMARY KEY,
+      ota TEXT NOT NULL,
+      origin TEXT NOT NULL,
+      destination TEXT NOT NULL,
+      date TEXT NOT NULL,
+      error_type TEXT NOT NULL,
+      error_message TEXT NOT NULL,
+      created_at INTEGER NOT NULL
+    );
+  `);
+
   return db;
 }
 
@@ -60,4 +99,73 @@ export function hasSnapshot(db, { origin, destination, date }) {
     LIMIT 1
   `);
   return Boolean(stmt.get({ origin, destination, date }));
+}
+
+export function hasCtripPrice(db, { origin, destination, date }) {
+  const stmt = db.prepare(`
+    SELECT 1
+    FROM ctrip_price_observations
+    WHERE origin = @origin
+      AND destination = @destination
+      AND date = @date
+    LIMIT 1
+  `);
+  return Boolean(stmt.get({ origin, destination, date }));
+}
+
+export function insertCtripPrice(db, { id, ota, origin, destination, date, min_price, currency, source }) {
+  const stmt = db.prepare(`
+    INSERT OR REPLACE INTO ctrip_price_observations
+      (id, ota, origin, destination, date, min_price, currency, source, captured_at)
+    VALUES
+      (@id, @ota, @origin, @destination, @date, @min_price, @currency, @source, @captured_at)
+  `);
+  stmt.run({
+    id,
+    ota,
+    origin,
+    destination,
+    date,
+    min_price,
+    currency,
+    source,
+    captured_at: Date.now()
+  });
+}
+
+export function insertCtripRaw(db, { id, ota, origin, destination, date, raw_path }) {
+  const stmt = db.prepare(`
+    INSERT OR REPLACE INTO ctrip_raw_snapshots
+      (id, ota, origin, destination, date, raw_path, captured_at)
+    VALUES
+      (@id, @ota, @origin, @destination, @date, @raw_path, @captured_at)
+  `);
+  stmt.run({
+    id,
+    ota,
+    origin,
+    destination,
+    date,
+    raw_path,
+    captured_at: Date.now()
+  });
+}
+
+export function insertCtripError(db, { id, ota, origin, destination, date, error_type, error_message }) {
+  const stmt = db.prepare(`
+    INSERT OR REPLACE INTO ctrip_crawler_errors
+      (id, ota, origin, destination, date, error_type, error_message, created_at)
+    VALUES
+      (@id, @ota, @origin, @destination, @date, @error_type, @error_message, @created_at)
+  `);
+  stmt.run({
+    id,
+    ota,
+    origin,
+    destination,
+    date,
+    error_type,
+    error_message,
+    created_at: Date.now()
+  });
 }
