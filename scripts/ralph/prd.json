@@ -28,7 +28,7 @@
         "如果 README 截图已经移动到稳定的文档资源位置，不要把这个截图资源一起删掉。"
       ],
       "priority": 2,
-      "passes": false,
+      "passes": true,
       "notes": "当前 storage 根目录里可以看到明显不属于目标集合的文件，例如 `chart_PVG_URC.html`、`flight_prices_PVG_URC.csv`、`tdp.sqlite` 以及多份非 330 天的 Ctrip CSV 输出。"
     },
     {
