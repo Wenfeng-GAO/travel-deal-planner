@@ -14,8 +14,8 @@
         "确认 README 中引用的截图文件在最终提交路径中真实存在。"
       ],
       "priority": 1,
-      "passes": true,
-      "notes": "这一条优先于 storage 清理执行，避免当前截图在清理运行产物时被误删。"
+      "passes": false,
+      "notes": "这一条优先于 storage 清理执行，避免当前截图在清理运行产物时被误删。已重置为未完成，以便在 merge/push 约束更新后重新执行。"
     },
     {
       "id": "US-002",
