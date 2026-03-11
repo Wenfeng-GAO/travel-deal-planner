@@ -1,0 +1,15 @@
+# Ralph Progress Log
+Started: Thu Mar 12 00:46:01 CST 2026
+## Codebase Patterns
+- Any asset referenced from `README.md` should live in a committed docs path such as `docs/images/`, not under runtime-oriented `storage/`.
+---
+## 2026-03-12 00:55:18 CST - US-001
+- What was implemented: Copied the latest local UI screenshot from `storage/ctrip/screenshots/PVG-URC-2026-02-26.png` into `docs/images/pvg-urc-2026-02-26.png` and embedded it in `README.md` with a relative Markdown image path.
+- Files changed: `README.md`, `docs/images/pvg-urc-2026-02-26.png`, `scripts/ralph/prd.json`, `scripts/ralph/progress.txt`
+- Quality checks run: `pnpm test`; `git diff --check`; verified `docs/images/pvg-urc-2026-02-26.png` exists and `README.md` references it with a relative path.
+- Commit created: `feat: US-001 - 在 README 中嵌入最新的 UI 截图`
+- Learnings for future iterations:
+  - Patterns discovered: README-facing assets should be copied into a committed docs folder before any `storage/` cleanup.
+  - Gotchas encountered: `scripts/ralph/` is currently untracked in this worktree, so stage only the specific Ralph state files you intend to commit.
+  - Useful context: No nearby repo `AGENTS.md` files were present to update. Browser verification was not applied to README rendering; a manual GitHub/local Markdown preview is still worth checking after merge.
+---

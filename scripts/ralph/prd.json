@@ -1,0 +1,48 @@
+{
+  "project": "Travel Deal Planner",
+  "branchName": "ralph/storage-readme-cleanup",
+  "description": "清理 storage 中的运行产物，并完善 README 的截图展示与文档链接。",
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "在 README 中嵌入最新的 UI 截图",
+      "description": "作为读者，我希望直接在 README 中看到当前界面，这样无需本地运行项目也能快速理解产品现状。",
+      "acceptanceCriteria": [
+        "优先使用当前已存在的最新本地 UI 截图 `storage/ctrip/screenshots/PVG-URC-2026-02-26.png`，除非在实现过程中发现了更新的本地截图。",
+        "将选中的截图复制或移动到稳定的文档资源路径，而不是继续放在运行时 storage 目录中，例如 `docs/` 或其他会被提交的资源目录。",
+        "在 `README.md` 中使用相对 Markdown 图片路径嵌入该截图，并确保 GitHub 可以正常渲染。",
+        "确认 README 中引用的截图文件在最终提交路径中真实存在。"
+      ],
+      "priority": 1,
+      "passes": true,
+      "notes": "这一条优先于 storage 清理执行，避免当前截图在清理运行产物时被误删。"
+    },
+    {
+      "id": "US-002",
+      "title": "将 storage 精简为最完整的 330 天 Ctrip 数据集",
+      "description": "作为维护者，我希望仓库中的 storage 目录只保留最完整的 330 天 Ctrip 数据集，这样仓库会更干净，后续维护也不会混淆。",
+      "acceptanceCriteria": [
+        "只保留作为标准数据集所需的 330 天 Ctrip 数据产物，例如 `*_330d.csv` 以及对应的 330 天质量报告或 suspicious 报告。",
+        "删除其他不属于保留 330 天 Ctrip 数据集的已提交 storage 产物，包括更短时间范围的 Ctrip 输出以及无关的生成文件。",
+        "清理完成后，确认 `storage/` 中剩余的已提交数据文件与预期保留的 330 天 Ctrip 产物集合一致。",
+        "如果 README 截图已经移动到稳定的文档资源位置，不要把这个截图资源一起删掉。"
+      ],
+      "priority": 2,
+      "passes": false,
+      "notes": "当前 storage 根目录里可以看到明显不属于目标集合的文件，例如 `chart_PVG_URC.html`、`flight_prices_PVG_URC.csv`、`tdp.sqlite` 以及多份非 330 天的 Ctrip CSV 输出。"
+    },
+    {
+      "id": "US-003",
+      "title": "让 README 中的文档引用可点击",
+      "description": "作为读者，我希望 README 中的文档引用可以直接点击，这样可以在 GitHub 上快速跳转到对应文档。",
+      "acceptanceCriteria": [
+        "将 README 里的 docs 引用改成相对 Markdown 链接，例如链接到 `docs/PRODUCT.md` 和 `docs/DEVELOPMENT.md`。",
+        "把 README 中其他当前仍是纯本地绝对路径的文档引用一并改成仓库内可点击的相对链接。",
+        "确认 `README.md` 的主要文档引用不再使用纯本地绝对文件路径。"
+      ],
+      "priority": 3,
+      "passes": false,
+      "notes": "最终链接应保持为仓库内相对路径，这样在本地 Markdown 预览和 GitHub 上都能使用。"
+    }
+  ]
+}

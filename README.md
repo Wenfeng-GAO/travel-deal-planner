@@ -2,6 +2,9 @@
 
 A web product that recommends the cheapest travel window and a comfort‑oriented low‑price option, starting with Shanghai departures and pilot destinations: Urumqi, Dali, and Chiang Mai.
 
+## UI Snapshot
+![Latest UI snapshot for PVG to URC](docs/images/pvg-urc-2026-02-26.png)
+
 ## Docs
 - Product: /Users/wenfeng/Documents/code/travel-deal-planner/docs/PRODUCT.md
 - Development: /Users/wenfeng/Documents/code/travel-deal-planner/docs/DEVELOPMENT.md
