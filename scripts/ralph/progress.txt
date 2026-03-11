@@ -3,6 +3,7 @@ Started: Thu Mar 12 00:46:01 CST 2026
 ## Codebase Patterns
 - Any asset referenced from `README.md` should live in a committed docs path such as `docs/images/`, not under runtime-oriented `storage/`.
 - Keep `scripts/ralph/prd.json` stories as `passes: false` on the feature branch until the implementation has been merged into `main` and `main` has been pushed; flip the flag in a follow-up commit on `main`.
+- If `storage/` needs to keep a canonical checked-in dataset, ignore `storage/*` and explicitly unignore only the approved files so runtime noise stays local.
 ---
 ## 2026-03-12 00:55:18 CST - US-001
 - What was implemented: Copied the latest local UI screenshot from `storage/ctrip/screenshots/PVG-URC-2026-02-26.png` into `docs/images/pvg-urc-2026-02-26.png` and embedded it in `README.md` with a relative Markdown image path.
@@ -22,5 +23,15 @@ Started: Thu Mar 12 00:46:01 CST 2026
 - Learnings for future iterations:
   - Patterns discovered: When a Ralph story is already implemented on the feature branch, a small follow-up commit on `main` is enough to record completion after the required merge/push sequence.
   - Gotchas encountered: `README.md` rendering was not browser-verified in this environment; manual Markdown/GitHub preview is still required for visual confirmation.
+  - Useful context: No nearby repo `AGENTS.md` files were present to update during this iteration.
+---
+## 2026-03-12 01:18:38 CST - US-002
+- What was implemented: Replaced the blanket `storage/` ignore with an allowlist for the canonical 330-day Ctrip CSV artifacts, removed the other local `storage/` runtime outputs, merged the resulting change through `ralph/storage-readme-cleanup` into `main`, and pushed `main` to `origin`.
+- Files changed: `.gitignore`, `storage/ctrip_prices_PVG_URC_330d.csv`, `storage/ctrip_quality_PVG_URC_330d.csv`, `storage/ctrip_quality_PVG_URC_330d_suspicious.csv`, `storage/ctrip_spotcheck_PVG_URC_330d.csv`, `scripts/ralph/prd.json`, `scripts/ralph/progress.txt`
+- Quality checks run: `find storage -maxdepth 1 -type f | sort`; `git check-ignore -v` for kept vs removed storage files; `pnpm test`; `git diff --check`; `git fetch origin main`; `git merge --no-ff origin/main` on the feature branch; `git merge --no-ff ralph/storage-readme-cleanup` on `main`; `git push origin main`.
+- Commit created: `chore: mark US-002 complete after main push`
+- Learnings for future iterations:
+  - Patterns discovered: Use `.gitignore` allowlists for canonical sample data in otherwise runtime-oriented directories.
+  - Gotchas encountered: A blanket ignored `storage/` directory hides cleanup progress from git, so verify the intended tracked set with `find storage` and `git check-ignore -v`.
   - Useful context: No nearby repo `AGENTS.md` files were present to update during this iteration.
 ---
