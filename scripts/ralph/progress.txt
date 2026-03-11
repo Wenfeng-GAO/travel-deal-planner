@@ -2,6 +2,7 @@
 Started: Thu Mar 12 00:46:01 CST 2026
 ## Codebase Patterns
 - Any asset referenced from `README.md` should live in a committed docs path such as `docs/images/`, not under runtime-oriented `storage/`.
+- Keep `scripts/ralph/prd.json` stories as `passes: false` on the feature branch until the implementation has been merged into `main` and `main` has been pushed; flip the flag in a follow-up commit on `main`.
 ---
 ## 2026-03-12 00:55:18 CST - US-001
 - What was implemented: Copied the latest local UI screenshot from `storage/ctrip/screenshots/PVG-URC-2026-02-26.png` into `docs/images/pvg-urc-2026-02-26.png` and embedded it in `README.md` with a relative Markdown image path.
@@ -12,4 +13,14 @@ Started: Thu Mar 12 00:46:01 CST 2026
   - Patterns discovered: README-facing assets should be copied into a committed docs folder before any `storage/` cleanup.
   - Gotchas encountered: `scripts/ralph/` is currently untracked in this worktree, so stage only the specific Ralph state files you intend to commit.
   - Useful context: No nearby repo `AGENTS.md` files were present to update. Browser verification was not applied to README rendering; a manual GitHub/local Markdown preview is still worth checking after merge.
+---
+## 2026-03-12 01:14:34 CST - US-001
+- What was implemented: Replayed the Ralph completion flow for US-001 by keeping the feature branch in a pre-pass state, merging `ralph/storage-readme-cleanup` into `main`, pushing `main` to `origin`, and then marking the story complete in `prd.json`.
+- Files changed: `README.md`, `docs/images/pvg-urc-2026-02-26.png`, `scripts/ralph/prd.json`, `scripts/ralph/progress.txt`
+- Quality checks run: `pnpm test`; `git diff --check`; `git merge --no-ff main` on the feature branch reported already up to date; merged the feature branch into `main`; pushed `main` to `origin`.
+- Commit created: `chore: mark US-001 complete after main push`
+- Learnings for future iterations:
+  - Patterns discovered: When a Ralph story is already implemented on the feature branch, a small follow-up commit on `main` is enough to record completion after the required merge/push sequence.
+  - Gotchas encountered: `README.md` rendering was not browser-verified in this environment; manual Markdown/GitHub preview is still required for visual confirmation.
+  - Useful context: No nearby repo `AGENTS.md` files were present to update during this iteration.
 ---
