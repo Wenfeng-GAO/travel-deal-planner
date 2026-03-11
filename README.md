@@ -6,8 +6,8 @@ A web product that recommends the cheapest travel window and a comfort‑oriente
 ![Latest UI snapshot for PVG to URC](docs/images/pvg-urc-2026-02-26.png)
 
 ## Docs
-- Product: /Users/wenfeng/Documents/code/travel-deal-planner/docs/PRODUCT.md
-- Development: /Users/wenfeng/Documents/code/travel-deal-planner/docs/DEVELOPMENT.md
+- Product: [docs/PRODUCT.md](docs/PRODUCT.md)
+- Development: [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)
 
 ## API (local)
 Create a local `.env` (gitignored) or export env vars before running Amadeus calls:
