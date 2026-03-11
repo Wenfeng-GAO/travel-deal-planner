@@ -4,6 +4,7 @@ Started: Thu Mar 12 00:46:01 CST 2026
 - Any asset referenced from `README.md` should live in a committed docs path such as `docs/images/`, not under runtime-oriented `storage/`.
 - Keep `scripts/ralph/prd.json` stories as `passes: false` on the feature branch until the implementation has been merged into `main` and `main` has been pushed; flip the flag in a follow-up commit on `main`.
 - If `storage/` needs to keep a canonical checked-in dataset, ignore `storage/*` and explicitly unignore only the approved files so runtime noise stays local.
+- In this shell, networked Node tests need `NODE_USE_ENV_PROXY=1` so `fetch` honors the configured `HTTP_PROXY`/`HTTPS_PROXY` variables during Amadeus integration checks.
 ---
 ## 2026-03-12 00:55:18 CST - US-001
 - What was implemented: Copied the latest local UI screenshot from `storage/ctrip/screenshots/PVG-URC-2026-02-26.png` into `docs/images/pvg-urc-2026-02-26.png` and embedded it in `README.md` with a relative Markdown image path.
@@ -34,4 +35,14 @@ Started: Thu Mar 12 00:46:01 CST 2026
   - Patterns discovered: Use `.gitignore` allowlists for canonical sample data in otherwise runtime-oriented directories.
   - Gotchas encountered: A blanket ignored `storage/` directory hides cleanup progress from git, so verify the intended tracked set with `find storage` and `git check-ignore -v`.
   - Useful context: No nearby repo `AGENTS.md` files were present to update during this iteration.
+---
+## 2026-03-12 01:24:05 CST - US-003
+- What was implemented: Replaced the absolute filesystem doc references in `README.md` with relative Markdown links to `docs/PRODUCT.md` and `docs/DEVELOPMENT.md`, merged the change through `ralph/storage-readme-cleanup` into `main`, and pushed `main` to `origin`.
+- Files changed: `README.md`, `scripts/ralph/prd.json`, `scripts/ralph/progress.txt`
+- Quality checks run: `rg -n '/Users/wenfeng/Documents/code/travel-deal-planner/docs/|\\[docs/' README.md`; `pnpm test`; `git diff --check`; `git fetch origin main`; `git merge --no-ff origin/main` on the feature branch; `pnpm test` on `main` failed twice with Amadeus connect timeouts; `NODE_USE_ENV_PROXY=1 pnpm test`; `git merge --no-ff ralph/storage-readme-cleanup` on `main`; `git push origin main`.
+- Commit created: `chore: mark US-003 complete after main push`
+- Learnings for future iterations:
+  - Patterns discovered: For README docs sections, prefer relative Markdown links over raw filesystem paths so both local preview and GitHub rendering stay clickable.
+  - Gotchas encountered: The Amadeus integration tests can time out in this environment unless Node proxy support is enabled, even when `curl` can reach the host via `HTTP_PROXY`/`HTTPS_PROXY`.
+  - Useful context: No nearby repo `AGENTS.md` files were present to update during this iteration. README link rendering was not browser-verified; a manual Markdown/GitHub preview is still worth checking.
 ---

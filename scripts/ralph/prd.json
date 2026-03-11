@@ -41,7 +41,7 @@
         "确认 `README.md` 的主要文档引用不再使用纯本地绝对文件路径。"
       ],
       "priority": 3,
-      "passes": false,
+      "passes": true,
       "notes": "最终链接应保持为仓库内相对路径，这样在本地 Markdown 预览和 GitHub 上都能使用。"
     }
   ]
