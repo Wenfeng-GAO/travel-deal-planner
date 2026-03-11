@@ -2,5 +2,9 @@ node_modules/
 .env
 .ctrip.config.json
 *.sqlite
-storage/
+storage/*
+!storage/ctrip_prices_PVG_URC_330d.csv
+!storage/ctrip_quality_PVG_URC_330d.csv
+!storage/ctrip_quality_PVG_URC_330d_suspicious.csv
+!storage/ctrip_spotcheck_PVG_URC_330d.csv
 .DS_Store
